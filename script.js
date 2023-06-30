@@ -61,6 +61,7 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+// Deposits and withdrawals display section
 const displayMovements = function (movements) {
   containerMovements.innerHTML = '';
   // .textContent = 0
@@ -74,20 +75,49 @@ const displayMovements = function (movements) {
       <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-      <div class="movements__value">${mov}</div>
+      <div class="movements__value">${mov}€</div>
       </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
 
-displayMovements(account1.movements);
+// displayMovements(account1.movements);
 
+// Display the total balance section
 const calcDisplayBalance = function (movements) {
   const balance = movements.reduce((acc, mov) => acc + mov, 0);
   labelBalance.textContent = `${balance}€`;
 };
-calcDisplayBalance(account1.movements);
+// calcDisplayBalance(account1.movements);
 
+// Bottom three values (in, out, and intrest section)
+const calcDisplaySummary = function (acc) {
+  // Deposits calculations
+  const incomes = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes} €`;
+
+  // Withdrawals calculations
+  const out = acc.movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(out)}€`;
+
+  // Bank intrests calculations
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
+    .filter((int, i, arr) => {
+      console.log(arr);
+      return int >= 1;
+    })
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
+// calcDisplaySummary(account1.movements);
+
+// create the username section
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
     acc.username = acc.owner
@@ -100,6 +130,44 @@ const createUsernames = function (accs) {
 
 createUsernames(accounts);
 // console.log(accounts);
+//  IMPORTANT NOTE ABOUT CHAINING: Make sure to not overuse chaining
+// because it can caouse huge performance issues. TRY NOT TO chain the
+// splice and reverse methods because they change the original array.
+
+/////////////////////////////////////////////////////////
+// Event handlers
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+  // This will prveent form submitting
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+  console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // Display UI and welcome message
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }!`;
+    containerApp.style.opacity = 100;
+
+    // Clear input fields
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+
+    // Display movements
+    displayMovements(currentAccount.movements);
+
+    // Display balance
+    calcDisplayBalance(currentAccount.movements);
+
+    // Display summary
+    calcDisplaySummary(currentAccount);
+  }
+});
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -274,6 +342,9 @@ checkDogs([9, 16, 6, 8, 3], [10, 5, 6, 1, 4]);
 
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+/////////////////////////////////////////////////////////
+// The map method
 const euroToUsd = 1.1;
 
 // const movementsUSD = movements.map(function (mov) {
@@ -368,7 +439,7 @@ TEST DATA 1: [5, 2, 4, 1, 15, 8, 3]
 TEST DATA 2: [16, 6, 10, 5, 6, 1, 4]
 
 GOOD LUCK 😀
-*/
+
 
 const calcAverageHumanAge = function (ages) {
   const humanAge = ages.map(age => (age <= 2 ? 2 * age : 16 + age * 4));
@@ -377,13 +448,88 @@ const calcAverageHumanAge = function (ages) {
   console.log(humanAge);
   console.log(adults);
 
+  // const average = adults.reduce(
+  //   (acc, age) => acc + age / adults.length,
+  //   0
+  // );
+
   const average = adults.reduce(
     (acc, age, i, arr) => acc + age / arr.length,
     0
   );
+
+  // average of 2 and 3, (2+3)/2 = 2.5 === 2/2+3/2 =2.5
   return average;
 };
 
 const data1 = calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]);
 const data2 = calcAverageHumanAge([16, 6, 10, 5, 6, 1, 4]);
 console.log(data1, data2);
+
+
+// You can continue chaining as long as the first method returns a new
+// array, for example: the map and filter methods both produce new arrays,
+// while the reduce method returns a new value. This means that you can't
+// continue chaining after the reduce method.
+const euroToUsd = 1.1;
+console.log(movements);
+
+// PIPELINE ANALOGY
+const totalDepositsUSD = movements
+  .filter(mov => mov > 0)
+  .map((mov, i, arr) => {
+    // console.log(arr);
+    return mov * euroToUsd;
+  })
+  // .map((mov, i, arr) => mov * euroToUsd)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(totalDepositsUSD);
+*/
+
+////////////////////////////////////////////////////////////
+// Coding Challenge #3
+
+/*
+Rewrite the 'calcAverageHumanAge' function from the previous challenge, 
+but this time as an arrow function, and using chaining!
+
+TEST DATA 1: [5, 2, 4, 1, 15, 8, 3]
+TEST DATA 2: [16, 6, 10, 5, 6, 1, 4]
+
+
+const calcAverageHumanAge2 = function (ages) {
+  const humanAge = ages.map(age => (age <= 2 ? 2 * age : 16 + age * 4));
+  const adults = humanAge.filter(age => age >= 18);
+
+  const average = adults.reduce(
+    (acc, age, i, arr) => acc + age / arr.length,
+    0
+  );
+
+  return average;
+};
+
+const calcAverageHumanAge = ages =>
+  ages
+    .map(age => (age <= 2 ? 2 * age : 16 + age * 4))
+    .filter(age => age >= 18)
+    .reduce((acc, age, i, arr) => acc + age / arr.length, 0);
+
+const data1 = calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]);
+const data2 = calcAverageHumanAge([16, 6, 10, 5, 6, 1, 4]);
+console.log(data1, data2);
+*/
+
+///////////////////////////////////////////////////////
+// The find method - can be used to retreive an element from an array, based on a condition
+// The find method only returns the FIRST element that satisfies the condtiont from the array
+// Filter and find methods are very similar to each other, but 2 differences is that the find method returns only 1 element while filter returns a whole new array. Second difference is written above
+
+const firstWithdrawal = movements.find(mov => mov < 0);
+console.log(movements);
+console.log(firstWithdrawal);
+
+console.log(accounts);
+
+const account = accounts.find(acc => acc.owner === 'Jessica Davis');
+console.log(account);
