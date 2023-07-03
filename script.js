@@ -62,11 +62,13 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 // Deposits and withdrawals display section
-const displayMovements = function (movements) {
+const displayMovements = function (movements, sort = false) {
   containerMovements.innerHTML = '';
   // .textContent = 0
 
-  movements.forEach(function (mov, i) {
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
     const html = `
@@ -84,9 +86,10 @@ const displayMovements = function (movements) {
 // displayMovements(account1.movements);
 
 // Display the total balance section
-const calcDisplayBalance = function (movements) {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance}€`;
+const calcDisplayBalance = function (acc) {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+
+  labelBalance.textContent = `${acc.balance}€`;
 };
 // calcDisplayBalance(account1.movements);
 
@@ -133,13 +136,25 @@ createUsernames(accounts);
 //  IMPORTANT NOTE ABOUT CHAINING: Make sure to not overuse chaining
 // because it can caouse huge performance issues. TRY NOT TO chain the
 // splice and reverse methods because they change the original array.
+const updateUI = function (acc) {
+  // Display movements
+  displayMovements(acc.movements);
+
+  // Display balance
+  calcDisplayBalance(acc);
+
+  // Display summary
+  calcDisplaySummary(acc);
+};
 
 /////////////////////////////////////////////////////////
 // Event handlers
+
+// LOGIN SECTION
 let currentAccount;
 
 btnLogin.addEventListener('click', function (e) {
-  // This will prveent form submitting
+  // This will prevent form submitting
   e.preventDefault();
 
   currentAccount = accounts.find(
@@ -157,16 +172,92 @@ btnLogin.addEventListener('click', function (e) {
     // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
-
-    // Display movements
-    displayMovements(currentAccount.movements);
-
-    // Display balance
-    calcDisplayBalance(currentAccount.movements);
-
-    // Display summary
-    calcDisplaySummary(currentAccount);
+    // Update UI
+    updateUI(currentAccount);
   }
+});
+
+// TRANSFER MONEY SECTION
+
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  inputTransferAmount.value = inputTransferTo.value = '';
+
+  // console.log(amount, receiverAcc);
+
+  if (
+    amount > 0 &&
+    receiverAcc &&
+    currentAccount.balance >= amount &&
+    receiverAcc?.username !== currentAccount.username
+  ) {
+    // Doing the transfer
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount);
+
+    // Update UI
+    updateUI(currentAccount);
+  }
+});
+
+// REQUEST LOAN SECTION
+
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    // Add movement
+    currentAccount.movements.push(amount);
+
+    // Update UI
+    updateUI(currentAccount);
+  }
+
+  // Clear input fields
+  inputLoanAmount.value = '';
+});
+
+// DELETE ACCOUNT SECTION
+
+// A method similar to the find method is the findIndex method which
+// returns the index of the element found
+
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  if (
+    currentAccount.username === inputCloseUsername.value &&
+    currentAccount.pin === Number(inputClosePin.value)
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username === currentAccount.username
+    );
+
+    // Delete Account
+    accounts.splice(index, 1);
+
+    // Hide UI
+    containerApp.style.opacity = 0;
+  }
+
+  // Clear input fields
+  inputCloseUsername.value = inputClosePin.value = '';
+});
+
+// SORT BUTTON SECTION
+
+let sorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !sorted);
+  sorted = !sorted;
 });
 
 /////////////////////////////////////////////////
@@ -175,6 +266,7 @@ btnLogin.addEventListener('click', function (e) {
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 /*
+
 /////////////////////////////////////////////////
 let arr = ['a', 'b', 'c', 'd', 'e'];
 
@@ -518,7 +610,7 @@ const calcAverageHumanAge = ages =>
 const data1 = calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]);
 const data2 = calcAverageHumanAge([16, 6, 10, 5, 6, 1, 4]);
 console.log(data1, data2);
-*/
+
 
 ///////////////////////////////////////////////////////
 // The find method - can be used to retreive an element from an array, based on a condition
@@ -533,3 +625,168 @@ console.log(accounts);
 
 const account = accounts.find(acc => acc.owner === 'Jessica Davis');
 console.log(account);
+
+
+console.log(movements);
+
+// The includes method checks for EQUALITY
+console.log(movements.includes(-130));
+
+// With the some method, we can specify a CONDITION
+console.log(movements.some(mov => mov === -130));
+
+const anyDeposits = movements.some(mov => mov > 0);
+console.log(anyDeposits);
+
+// EVERY METHOD (ONLY returns true if all the elements in array satisfy the condition that we pass in)
+console.log(movements.every(mov => mov > 0));
+console.log(account4.movements.every(mov => mov > 0));
+
+// Seperate callback
+const deposit = mov => mov > 0;
+console.log(movements.some(deposit));
+console.log(movements.every(deposit));
+console.log(movements.filter(deposit));
+
+
+// The default behavior of the flat method is to go one-level deep when putting element from the array into one big array
+// We can specify the depth number as the argument for the flat method
+
+const arr = [[1, 2, 3], [4, 5, 6], 7, 8];
+console.log(arr.flat());
+
+const arrDeep = [[[1, 2], 3], [4, [5, 6]], 7, 8];
+console.log(arrDeep.flat(2));
+
+// const accountMovements = accounts.map(acc => acc.movements);
+// console.log(accountMovements);
+// const allMovements = accountMovements.flat();
+// console.log(allMovements);
+// const overalBalance = allMovements.reduce((acc, mov) => acc + mov, 0);
+// console.log(overalBalance);
+
+// flat method
+const overalBalance = accounts
+  .map(acc => acc.movements)
+  .flat()
+  .reduce((acc, mov) => acc + mov, 0);
+
+console.log(overalBalance);
+
+// It is very common to first use map and then flat afterwards, that's why, the new flatmap method was recently introduced to improve performance
+// the flat method only goes one level deep and we CANNOT change it
+// So if you do need to go a deeper level than one, you still need to use the flat method
+
+// flatMap
+const overalBalance2 = accounts
+  .flatMap(acc => acc.movements)
+  .reduce((acc, mov) => acc + mov, 0);
+
+console.log(overalBalance2);
+
+
+// The sort method changes the original array so we have to be careful
+// Sort method with strings (sorts them in aplphabetical order)
+const owner = [
+  'Samira',
+  'Aziza',
+  'Saidhon',
+  'Umida',
+  'Otabek',
+  'James',
+  'Jonas',
+];
+
+console.log(owner.sort());
+
+// Sort method with numbers
+console.log(movements);
+// console.log(movements.sort());
+
+// return < 0, A, B (keep order)
+// return > 0, B, A (switch order)
+
+// Ascending order
+// movements.sort((a, b) => {
+//   if (a > b) return 1;
+//   if (a < b) return -1;
+// });
+movements.sort((a, b) => a - b);
+console.log(movements);
+
+// Descending order
+// movements.sort((a, b) => {
+//   if (a > b) return -1;
+//   if (a < b) return 1;
+// });
+movements.sort((a, b) => b - a);
+console.log(movements);
+
+// Try NOT to use the sort method when you have an array which has a mixture of both string and numbers
+// It is best to use the sort method when there are only number OR strings in an array
+
+
+const arr = [1, 2, 3, 4, 5, 6, 7];
+console.log(new Array(1, 2, 3, 4, 5, 6, 7));
+
+// Passing in only one argument into the array function will create
+// an empty array with the length of the number that was passed in
+// (in this case it would be an empty array with the length of 7)
+const x = new Array(7);
+console.log(x);
+
+// Doing this won't change anything
+// console.log(x.map(() => 5));
+
+/////// FILL METHOD - changes the original array /////////
+// x.fill(1);
+x.fill(1, 3, 5);
+console.log(x);
+
+arr.fill(23, 2, 6);
+console.log(arr);
+
+// Array.from
+const y = Array.from({ length: 7 }, () => 1);
+console.log(y);
+
+const z = Array.from({ length: 7 }, (_, i) => i + 1);
+console.log(z);
+
+labelBalance.addEventListener('click', function () {
+  const movementsUI = Array.from(
+    document.querySelectorAll('.movements__value'),
+    el => el.textContent.replace('€', '')
+  );
+
+  console.log(movementsUI);
+
+  const movementsUI2 = [...document.querySelectorAll('.movements__value')];
+});
+*/
+
+////////////////////////////////////////////////////////////////
+// Array Methods Practice
+
+// 1,
+const bankDepositSummary = accounts
+  .flatMap(acc => acc.movements)
+  .filter(mov => mov > 0)
+  .reduce((sum, cur) => sum + cur, 0);
+
+console.log(bankDepositSummary);
+
+// 2.
+// const numDeposits1000 = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(mov => mov >= 1000).length;
+
+const numDeposits1000 = accounts
+  .flatMap(acc => acc.movements)
+  // .reduce((count, cur) => (cur >= 1000 ? count + 1 : count), 0);
+  .reduce((count, cur) => (cur >= 1000 ? count++ : count), 0);
+
+console.log(numDeposits1000);
+
+let a = 10;
+console.log(++a);
