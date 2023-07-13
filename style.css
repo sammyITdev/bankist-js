@@ -94,6 +94,7 @@ nav {
   gap: 2rem;
 
   /* NOTE This creates the fade in/out anumation */
+  /* Also used for log in/log out */
   opacity: 0;
   transition: all 1s;
 }
