@@ -123,14 +123,15 @@ const displayMovements = function (acc, sort = false) {
     const formattedMov = formatCur(mov, acc.locale, acc.currency);
 
     const html = `
-    <div class="movements">
-      <div class="movements__row">
+    <div class="movements__row">
       <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-    <div class="movements__date">${displayDate}</div></div>
+      <div class="movements__date">${displayDate}</div>
       <div class="movements__value">${formattedMov}</div>
-      </div>`;
+    </div>
+  `;
+
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
@@ -216,7 +217,7 @@ const startLogOutTimer = function () {
     time--;
   };
   // Set time to 5 minutes
-  let time = 120;
+  let time = 300;
 
   // Call the timer every second
   tick();
@@ -384,7 +385,6 @@ btnClose.addEventListener('click', function (e) {
 });
 
 // SORT BUTTON SECTION
-
 let sorted = false;
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
