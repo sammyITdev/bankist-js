@@ -3,7 +3,7 @@ Description: The bankist application is a simple and fictional banking applicati
 
 - Log in with a username and password
 - View and sort their movements with their money (shows movement number and date)
-- Viw their total deposits and withdrawals
+- View their total deposits and withdrawals
 - View their intrest amount
 - Transfer money to another account
 - Request a loan from the bank (takes a few seconds for the loan to be sent/processed)
