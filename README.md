@@ -15,7 +15,7 @@ Log in info:
 - username: jd / password: 2222
 
 ## Deployment
-Check out the deployed application at:  <a href="https://bankis-simple-javascript-application.netlify.app/">Bankist application</a>
+Check out the deployed application at:  <a href="https://bankist-simple-javascript-application.netlify.app/">Bankist application</a>
 
 ## Built With 
 * HTML
